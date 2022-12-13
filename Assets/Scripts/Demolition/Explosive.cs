@@ -15,12 +15,17 @@ public class Explosive : MonoBehaviour
     [ContextMenu("Boom")]
     public void Explode()
     {
-        Destroy(gameObject, 0.01f);
+        
+        Instantiate(explosionPrefab, transform.position, transform.rotation);
+
         Collider[] cols = Physics.OverlapSphere(transform.position, explodeRange, explosionMask);
         foreach (var item in cols)
         {
             if(item.attachedRigidbody)
-                item.attachedRigidbody.AddExplosionForce(explodeForce, transform.position, explodeRange, 0.5f, ForceMode.Impulse);
+                item.attachedRigidbody.AddExplosionForce(explodeForce * (item.attachedRigidbody.mass / 2), transform.position, explodeRange, 0.5f, ForceMode.Impulse);
         }
+        
+        
+        Destroy(gameObject, 0.01f);
     }
 }
