@@ -48,7 +48,9 @@ namespace Eclipse.Firearms
             fireInput = input;
         }
 
-
+        public float windup;
+        [SerializeField] float windupDecay, windupSpeed;
+        float currentWindUp;
         [SerializeField] public Ammunition ammo;
         [SerializeField] public GameObject magazine;
         [SerializeField] protected Transform fireOrigin;
@@ -143,45 +145,62 @@ namespace Eclipse.Firearms
         {
             if (fireInput)
             {
-                if(ammo.currentAmmo > 0 && !boltBack)
+                currentWindUp += Time.fixedDeltaTime * windupSpeed;
+                currentWindUp = Mathf.Clamp(currentWindUp, 0, windup);
+                if (windup != 0)
                 {
-                    switch ((int)currentFiremode)
+                    if (currentWindUp == windup)
                     {
-                        case 0:
-                            if (!firePressed)
-                            {
-                                Fire();
-                            }
-                            break;
-                        case 1:
-                            Fire();
-                            break;
-                        case 2:
-                            if (!firePressed)
-                            {
-                                StartCoroutine(BurstCoroutine());
-                            }
-                            break;
-                        case 3:
-                            if (!singleFired)
-                            {
-                                Fire();
-                                singleFired = true;
-                            }
-                            break;
-                        default:
-                            break;
+                        FireLogic();
                     }
                 }
-
+                else
+                {
+                    FireLogic();
+                }
                 firePressed = true; 
             }
             else
             {
                 firePressed = false;
+                currentWindUp -= Time.fixedDeltaTime * windupDecay;
+                currentWindUp = Mathf.Clamp(currentWindUp, 0, windup);
             }
         }
 
+        void FireLogic()
+        {
+            if (ammo.currentAmmo > 0 && !boltBack)
+            {
+                switch ((int)currentFiremode)
+                {
+                    case 0:
+                        if (!firePressed)
+                        {
+                            Fire();
+                        }
+                        break;
+                    case 1:
+                        Fire();
+                        break;
+                    case 2:
+                        if (!firePressed)
+                        {
+                            StartCoroutine(BurstCoroutine());
+                        }
+                        break;
+                    case 3:
+                        if (!singleFired)
+                        {
+                            Fire();
+                            singleFired = true;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
         protected IEnumerator BurstCoroutine()
         {
             for (int i = 0; i < burstCount; i++)
